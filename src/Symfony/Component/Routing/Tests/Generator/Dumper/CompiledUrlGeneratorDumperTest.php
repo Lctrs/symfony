@@ -11,7 +11,10 @@
 
 namespace Symfony\Component\Routing\Tests\Generator\Dumper;
 
+use function file_put_contents;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 use Symfony\Component\Routing\Generator\Dumper\CompiledUrlGeneratorDumper;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -21,6 +24,8 @@ use Symfony\Component\Routing\RouteCollection;
 
 class CompiledUrlGeneratorDumperTest extends TestCase
 {
+    use ExpectDeprecationTrait;
+
     /**
      * @var RouteCollection
      */
@@ -255,5 +260,113 @@ class CompiledUrlGeneratorDumperTest extends TestCase
         $this->assertSame('/fun', $compiledUrlGenerator->generate('fun.en'));
         $this->assertSame('/fun', $compiledUrlGenerator->generate('fun', ['_locale' => 'en']));
         $this->assertSame('/amusant', $compiledUrlGenerator->generate('fun.fr', ['_locale' => 'en']));
+    }
+
+    public function testAliases()
+    {
+        $subCollection = new RouteCollection();
+        $subCollection->add('a', new Route('/sub'));
+        $subCollection->addAlias('b', 'a');
+        $subCollection->addAlias('c', 'b');
+        $subCollection->addNamePrefix('sub_');
+
+        $this->routeCollection->add('a', new Route('/foo'));
+        $this->routeCollection->addAlias('b', 'a');
+        $this->routeCollection->addAlias('c', 'b');
+        $this->routeCollection->addCollection($subCollection);
+
+        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
+
+        $compiledUrlGenerator = new CompiledUrlGenerator(require $this->testTmpFilepath, new RequestContext());
+
+        $this->assertSame('/foo', $compiledUrlGenerator->generate('b'));
+        $this->assertSame('/foo', $compiledUrlGenerator->generate('c'));
+        $this->assertSame('/sub', $compiledUrlGenerator->generate('sub_b'));
+        $this->assertSame('/sub', $compiledUrlGenerator->generate('sub_c'));
+    }
+
+    public function testTargetAliasNotExisting()
+    {
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->routeCollection->addAlias('a', 'not-existing');
+
+        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
+
+        $compiledUrlGenerator = new CompiledUrlGenerator(require $this->testTmpFilepath, new RequestContext());
+
+        $compiledUrlGenerator->generate('a');
+    }
+
+    public function testTargetAliasWithNamePrefixNotExisting()
+    {
+        $this->expectException(RouteNotFoundException::class);
+
+        $subCollection = new RouteCollection();
+        $subCollection->addAlias('a', 'not-existing');
+        $subCollection->addNamePrefix('sub_');
+
+        $this->routeCollection->addCollection($subCollection);
+
+        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
+
+        $compiledUrlGenerator = new CompiledUrlGenerator(require $this->testTmpFilepath, new RequestContext());
+
+        $compiledUrlGenerator->generate('sub_a');
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testDeprecatedAlias()
+    {
+        $this->expectDeprecation('Since foo/bar 1.0.0: The "b" route alias is deprecated. You should stop using it, as it will be removed in the future.');
+
+        $this->routeCollection->add('a', new Route('/foo'));
+        $this->routeCollection->addAlias('b', 'a')
+            ->setDeprecated('foo/bar', '1.0.0');
+
+        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
+
+        $compiledUrlGenerator = new CompiledUrlGenerator(require $this->testTmpFilepath, new RequestContext());
+
+        $compiledUrlGenerator->generate('b');
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testDeprecatedAliasWithCustomMessage()
+    {
+        $this->expectDeprecation('Since foo/bar 1.0.0: foo b.');
+
+        $this->routeCollection->add('a', new Route('/foo'));
+        $this->routeCollection->addAlias('b', 'a')
+            ->setDeprecated('foo/bar', '1.0.0', 'foo %alias%.');
+
+        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
+
+        $compiledUrlGenerator = new CompiledUrlGenerator(require $this->testTmpFilepath, new RequestContext());
+
+        $compiledUrlGenerator->generate('b');
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testTargettingADeprecatedAliasShouldTriggerDeprecation()
+    {
+        $this->expectDeprecation('Since foo/bar 1.0.0: foo b.');
+
+        $this->routeCollection->add('a', new Route('/foo'));
+        $this->routeCollection->addAlias('b', 'a')
+            ->setDeprecated('foo/bar', '1.0.0', 'foo %alias%.');
+        $this->routeCollection->addAlias('c', 'b');
+
+        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
+
+        $compiledUrlGenerator = new CompiledUrlGenerator(require $this->testTmpFilepath, new RequestContext());
+
+        $compiledUrlGenerator->generate('c');
     }
 }

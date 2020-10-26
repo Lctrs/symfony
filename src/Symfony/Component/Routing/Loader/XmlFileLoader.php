@@ -88,6 +88,9 @@ class XmlFileLoader extends FileLoader
             case 'import':
                 $this->parseImport($collection, $node, $path, $file);
                 break;
+            case 'alias':
+                $this->parseAlias($collection, $node, $path);
+                break;
             default:
                 throw new \InvalidArgumentException(sprintf('Unknown tag "%s" used in file "%s". Expected "route" or "import".', $node->localName, $path));
         }
@@ -217,6 +220,32 @@ class XmlFileLoader extends FileLoader
 
             $collection->addCollection($subCollection);
         }
+    }
+
+    /**
+     * Parses an alias and adds it to the RouteCollection.
+     *
+     * @param \DOMElement $node Element to parse that represents a Route
+     * @param string      $path Full path of the XML file being processed
+     *
+     * @throws \InvalidArgumentException When the XML is invalid
+     */
+    protected function parseAlias(RouteCollection $collection, \DOMElement $node, string $path)
+    {
+        if ('' === $id = $node->getAttribute('id')) {
+            throw new \InvalidArgumentException(sprintf('The <alias> element in file "%s" must have an "id" attribute.', $path));
+        }
+        if ('' === $route = $node->getAttribute('route')) {
+            throw new \InvalidArgumentException(sprintf('The <alias> element in file "%s" must have a "route" attribute.', $path));
+        }
+
+        $alias = $collection->addAlias($id, $route);
+
+        $deprecationInfo = $this->parseDeprecation($node, $path);
+        if ([] === $deprecationInfo) {
+            return;
+        }
+        $alias->setDeprecated($deprecationInfo['package'], $deprecationInfo['version'], $deprecationInfo['message']);
     }
 
     /**
@@ -423,5 +452,44 @@ class XmlFileLoader extends FileLoader
         }
 
         return 'true' === $element->getAttributeNS($namespaceUri, 'nil') || '1' === $element->getAttributeNS($namespaceUri, 'nil');
+    }
+
+    /**
+     * Parses the deprecation elements.
+     *
+     * @throws \InvalidArgumentException When the XML is invalid
+     */
+    private function parseDeprecation(\DOMElement $node, string $path): array
+    {
+        $deprecatedNode = null;
+        foreach ($node->childNodes as $child) {
+            if (!$child instanceof \DOMElement || self::NAMESPACE_URI !== $child->namespaceURI) {
+                continue;
+            }
+            if (!\in_array($child->localName, ['deprecated'], true)) {
+                throw new \InvalidArgumentException(sprintf('Invalid child element "%s" defined for alias "%s" in "%s".', $child->localName, $node->getAttribute('id'), $path));
+            }
+
+            $deprecatedNode = $child;
+        }
+
+        if (null === $deprecatedNode) {
+            return [];
+        }
+
+        if (!$deprecatedNode->hasAttribute('package')) {
+            throw new \InvalidArgumentException(sprintf('The <deprecated> element in file "%s" must have a "package" attribute.', $path));
+        }
+        if (!$deprecatedNode->hasAttribute('version')) {
+            throw new \InvalidArgumentException(sprintf('The <deprecated> element in file "%s" must have a "version" attribute.', $path));
+        }
+
+        $message = trim($deprecatedNode->nodeValue);
+
+        return [
+            'package' => $deprecatedNode->getAttribute('package'),
+            'version' => $deprecatedNode->getAttribute('version'),
+            'message' => $message ?: null,
+        ];
     }
 }

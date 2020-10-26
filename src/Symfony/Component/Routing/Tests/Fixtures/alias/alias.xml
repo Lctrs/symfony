@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<routes xmlns="http://symfony.com/schema/routing"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/routing
+        https://symfony.com/schema/routing/routing-1.0.xsd">
+
+    <route id="route" path="/hello"/>
+    <route id="overrided" path="/"/>
+    <alias id="alias" route="route"/>
+    <alias id="deprecated" route="route">
+        <deprecated package="foo/bar" version="1.0.0"/>
+    </alias>
+    <alias id="deprecated-with-custom-message" route="route">
+        <deprecated package="foo/bar" version="1.0.0">
+            foo %alias%.
+        </deprecated>
+    </alias>
+    <alias id="deep" route="alias"/>
+    <alias id="overrided" route="route"/>
+</routes>
