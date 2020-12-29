@@ -324,7 +324,7 @@ class CompiledUrlGeneratorDumperTest extends TestCase
 
         $this->routeCollection->add('a', new Route('/foo'));
         $this->routeCollection->addAlias('b', 'a')
-            ->setDeprecated('foo/bar', '1.0.0');
+            ->setDeprecated('foo/bar', '1.0.0', '');
 
         file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
 

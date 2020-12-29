@@ -748,7 +748,7 @@ class UrlGeneratorTest extends TestCase
         $routes = new RouteCollection();
         $routes->add('a', new Route('/foo'));
         $routes->addAlias('b', 'a')
-            ->setDeprecated('foo/bar', '1.0.0');
+            ->setDeprecated('foo/bar', '1.0.0', '');
 
         $this->getGenerator($routes)->generate('b');
     }

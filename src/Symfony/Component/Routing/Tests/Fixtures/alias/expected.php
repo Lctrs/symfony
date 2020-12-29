@@ -10,7 +10,7 @@ return static function (string $format) {
     $expectedRoutes->add('route', new Route('/hello'));
     $expectedRoutes->addAlias('alias', 'route');
     $expectedRoutes->addAlias('deprecated', 'route')
-        ->setDeprecated('foo/bar', '1.0.0');
+        ->setDeprecated('foo/bar', '1.0.0', '');
     $expectedRoutes->addAlias('deprecated-with-custom-message', 'route')
         ->setDeprecated('foo/bar', '1.0.0', 'foo %alias%.');
     $expectedRoutes->addAlias('deep', 'alias');

@@ -26,15 +26,15 @@ final class AliasConfigurator
     /**
      * Whether this alias is deprecated, that means it should not be called anymore.
      *
-     * @param string      $package The name of the composer package that is triggering the deprecation
-     * @param string      $version The version of the package that introduced the deprecation
-     * @param string|null $message The deprecation message to use, or null to use default
+     * @param string $package The name of the composer package that is triggering the deprecation
+     * @param string $version The version of the package that introduced the deprecation
+     * @param string $message The deprecation message to use
      *
      * @return $this
      *
      * @throws InvalidArgumentException when the message template is invalid
      */
-    public function deprecate(string $package, string $version, string $message = null): self
+    public function deprecate(string $package, string $version, string $message): self
     {
         $this->alias->setDeprecated($package, $version, $message);
 

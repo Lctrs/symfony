@@ -484,12 +484,10 @@ class XmlFileLoader extends FileLoader
             throw new \InvalidArgumentException(sprintf('The <deprecated> element in file "%s" must have a "version" attribute.', $path));
         }
 
-        $message = trim($deprecatedNode->nodeValue);
-
         return [
             'package' => $deprecatedNode->getAttribute('package'),
             'version' => $deprecatedNode->getAttribute('version'),
-            'message' => $message ?: null,
+            'message' => trim($deprecatedNode->nodeValue),
         ];
     }
 }

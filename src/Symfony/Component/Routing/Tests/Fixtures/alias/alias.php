@@ -7,7 +7,7 @@ return static function (RoutingConfigurator $routes): void {
     $routes->add('overrided', '/');
     $routes->alias('alias', 'route');
     $routes->alias('deprecated', 'route')
-        ->deprecate('foo/bar', '1.0.0');
+        ->deprecate('foo/bar', '1.0.0', '');
     $routes->alias('deprecated-with-custom-message', 'route')
         ->deprecate('foo/bar', '1.0.0', 'foo %alias%.');
     $routes->alias('deep', 'alias');
