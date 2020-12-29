@@ -47,12 +47,12 @@ class CompiledUrlGeneratorDumper extends GeneratorDumper
         $compiledAliases = [];
         foreach ($routes->getAliases() as $name => $alias) {
             $deprecation = $alias->isDeprecated() ? $alias->getDeprecation() : [];
-            while ($routes->hasAlias($alias->getTarget())) {
-                $alias = $routes->getAlias($alias->getTarget());
+            while ($routes->hasAlias($alias->getId())) {
+                $alias = $routes->getAlias($alias->getId());
             }
 
             $compiledAliases[$name] = [
-                $alias->getTarget(),
+                $alias->getId(),
                 $deprecation,
             ];
         }

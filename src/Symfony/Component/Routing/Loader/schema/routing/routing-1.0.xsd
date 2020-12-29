@@ -65,7 +65,7 @@
       <xsd:element name="deprecated" type="deprecated" minOccurs="0" maxOccurs="1" />
     </xsd:choice>
     <xsd:attribute name="id" type="xsd:string" use="required" />
-    <xsd:attribute name="route" type="xsd:string" use="required" />
+    <xsd:attribute name="alias" type="xsd:string" use="required" />
   </xsd:complexType>
 
   <xsd:complexType name="import">

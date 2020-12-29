@@ -125,7 +125,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
     public function get(string $name)
     {
         while ($this->hasAlias($name)) {
-            $name = $this->getAlias($name)->getTarget();
+            $name = $this->getAlias($name)->getId();
         }
 
         return $this->routes[$name] ?? null;
@@ -336,21 +336,21 @@ class RouteCollection implements \IteratorAggregate, \Countable
     /**
      * Sets an alias for an existing route.
      *
-     * @param string $alias  The alias to create
-     * @param string $target The route to alias
+     * @param string $name  The alias to create
+     * @param string $alias The route to alias
      *
      * @throws InvalidArgumentException if the id is not a string or an Alias
      * @throws InvalidArgumentException if the alias is for itself
      */
-    public function addAlias(string $alias, string $target): Alias
+    public function addAlias(string $name, string $alias): Alias
     {
-        if ($alias === $target) {
-            throw new InvalidArgumentException(sprintf('An alias can not reference itself, got a circular reference on "%s".', $alias));
+        if ($name === $alias) {
+            throw new InvalidArgumentException(sprintf('An alias can not reference itself, got a circular reference on "%s".', $name));
         }
 
-        unset($this->routes[$alias], $this->priorities[$alias]);
+        unset($this->routes[$name], $this->priorities[$name]);
 
-        return $this->aliases[$alias] = new Alias($alias, $target);
+        return $this->aliases[$name] = new Alias($name, $alias);
     }
 
     /**
@@ -361,21 +361,21 @@ class RouteCollection implements \IteratorAggregate, \Countable
         return $this->aliases;
     }
 
-    public function hasAlias(string $alias): bool
+    public function hasAlias(string $name): bool
     {
-        return isset($this->aliases[$alias]);
+        return isset($this->aliases[$name]);
     }
 
     /**
      * @throws InvalidArgumentException
      */
-    public function getAlias(string $alias): Alias
+    public function getAlias(string $name): Alias
     {
-        if (!isset($this->aliases[$alias])) {
-            throw new InvalidArgumentException(sprintf('The route alias "%s" does not exist.', $alias));
+        if (!isset($this->aliases[$name])) {
+            throw new InvalidArgumentException(sprintf('The route alias "%s" does not exist.', $name));
         }
 
-        $alias = $this->aliases[$alias];
+        $alias = $this->aliases[$name];
 
         if ($alias->isDeprecated()) {
             $deprecation = $alias->getDeprecation();

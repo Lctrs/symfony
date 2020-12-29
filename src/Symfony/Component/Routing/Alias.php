@@ -16,21 +16,21 @@ use Symfony\Component\Routing\Exception\InvalidArgumentException;
 final class Alias
 {
     private $name;
-    private $target;
+    private $id;
     private $deprecation = [];
 
-    public function __construct(string $name, string $target)
+    public function __construct(string $name, string $id)
     {
         $this->name = $name;
-        $this->target = $target;
+        $this->id = $id;
     }
 
-    public function with(string $name, string $target): self
+    public function with(string $name, string $id): self
     {
         $new = clone $this;
 
         $new->name = $name;
-        $new->target = $target;
+        $new->id = $id;
 
         return $new;
     }
@@ -40,9 +40,9 @@ final class Alias
      *
      * @return string The target name
      */
-    public function getTarget(): string
+    public function getId(): string
     {
-        return $this->target;
+        return $this->id;
     }
 
     /**

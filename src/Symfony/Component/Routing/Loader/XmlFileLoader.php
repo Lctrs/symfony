@@ -235,11 +235,11 @@ class XmlFileLoader extends FileLoader
         if ('' === $id = $node->getAttribute('id')) {
             throw new \InvalidArgumentException(sprintf('The <alias> element in file "%s" must have an "id" attribute.', $path));
         }
-        if ('' === $route = $node->getAttribute('route')) {
+        if ('' === $alias = $node->getAttribute('alias')) {
             throw new \InvalidArgumentException(sprintf('The <alias> element in file "%s" must have a "route" attribute.', $path));
         }
 
-        $alias = $collection->addAlias($id, $route);
+        $alias = $collection->addAlias($id, $alias);
 
         $deprecationInfo = $this->parseDeprecation($node, $path);
         if ([] === $deprecationInfo) {
