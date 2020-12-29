@@ -28,7 +28,11 @@ class CompiledUrlGenerator extends UrlGenerator
     {
         // TODO: To be removed in Symfony 6.0
         if (!isset($compiledRoutes['routes'])) {
-            trigger_deprecation('symfony/routing', '5.3', 'No idea.');
+            trigger_deprecation(
+                'symfony/routing',
+                '5.3',
+                'Providing a list of routes at the root level of the "$compiledRoutes" constructor argument of "'.__CLASS__.'" is deprecated, provide them in a "routes" subkey instead.'
+            );
         }
 
         $this->compiledRoutes = $compiledRoutes['routes'] ?? $compiledRoutes;
