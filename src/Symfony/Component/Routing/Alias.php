@@ -15,18 +15,8 @@ use Symfony\Component\Routing\Exception\InvalidArgumentException;
 
 final class Alias
 {
-
-    /**
-     * @var string
-     */
     private $name;
-    /**
-     * @var string
-     */
     private $target;
-    /**
-     * @var array{package?: string, version?: string, message?: string}
-     */
     private $deprecation = [];
 
     public function __construct(string $name, string $target)
