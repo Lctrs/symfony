@@ -15,10 +15,6 @@ use Symfony\Component\Routing\Exception\InvalidArgumentException;
 
 final class Alias
 {
-    /**
-     * @var string
-     */
-    private const DEFAULT_DEPRECATION_TEMPLATE = 'The "%alias%" route alias is deprecated. You should stop using it, as it will be removed in the future.';
 
     /**
      * @var string
@@ -86,7 +82,7 @@ final class Alias
         $this->deprecation = [
             'package' => $package,
             'version' => $version,
-            'message' => $message ?? self::DEFAULT_DEPRECATION_TEMPLATE,
+            'message' => $message ?? 'The "%alias%" route alias is deprecated. You should stop using it, as it will be removed in the future.',
         ];
 
         return $this;
