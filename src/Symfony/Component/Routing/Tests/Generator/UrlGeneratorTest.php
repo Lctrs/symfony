@@ -13,6 +13,7 @@ namespace Symfony\Component\Routing\Tests\Generator;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
+use Symfony\Component\Routing\Exception\RouteCircularReferenceException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -782,6 +783,45 @@ class UrlGeneratorTest extends TestCase
         $routes->addAlias('c', 'b');
 
         $this->getGenerator($routes)->generate('c');
+    }
+
+
+    public function testCircularReferenceShouldThrowAnException()
+    {
+        $this->expectException(RouteCircularReferenceException::class);
+        $this->expectExceptionMessage('Circular reference detected for route "b", path: "b -> a -> b".');
+
+        $routes = new RouteCollection();
+        $routes->addAlias('a', 'b');
+        $routes->addAlias('b', 'a');
+
+        $this->getGenerator($routes)->generate('b');
+    }
+
+    public function testDeepCircularReferenceShouldThrowAnException()
+    {
+        $this->expectException(RouteCircularReferenceException::class);
+        $this->expectExceptionMessage('Circular reference detected for route "b", path: "b -> c -> b".');
+
+        $routes = new RouteCollection();
+        $routes->addAlias('a', 'b');
+        $routes->addAlias('b', 'c');
+        $routes->addAlias('c', 'b');
+
+        $this->getGenerator($routes)->generate('b');
+    }
+
+    public function testIndirectCircularReferenceShouldThrowAnException()
+    {
+        $this->expectException(RouteCircularReferenceException::class);
+        $this->expectExceptionMessage('Circular reference detected for route "a", path: "a -> b -> c -> a".');
+
+        $routes = new RouteCollection();
+        $routes->addAlias('a', 'b');
+        $routes->addAlias('b', 'c');
+        $routes->addAlias('c', 'a');
+
+        $this->getGenerator($routes)->generate('a');
     }
 
     /**

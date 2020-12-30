@@ -11,9 +11,9 @@
 
 namespace Symfony\Component\Routing\Tests\Generator\Dumper;
 
-use function file_put_contents;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
+use Symfony\Component\Routing\Exception\RouteCircularReferenceException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 use Symfony\Component\Routing\Generator\Dumper\CompiledUrlGeneratorDumper;
@@ -315,6 +315,41 @@ class CompiledUrlGeneratorDumperTest extends TestCase
         $compiledUrlGenerator->generate('sub_a');
     }
 
+    public function testCircularReferenceShouldThrowAnException()
+    {
+        $this->expectException(RouteCircularReferenceException::class);
+        $this->expectExceptionMessage('Circular reference detected for route "b", path: "b -> a -> b".');
+
+        $this->routeCollection->addAlias('a', 'b');
+        $this->routeCollection->addAlias('b', 'a');
+
+        $this->generatorDumper->dump();
+    }
+
+    public function testDeepCircularReferenceShouldThrowAnException()
+    {
+        $this->expectException(RouteCircularReferenceException::class);
+        $this->expectExceptionMessage('Circular reference detected for route "b", path: "b -> c -> b".');
+
+        $this->routeCollection->addAlias('a', 'b');
+        $this->routeCollection->addAlias('b', 'c');
+        $this->routeCollection->addAlias('c', 'b');
+
+        $this->generatorDumper->dump();
+    }
+
+    public function testIndirectCircularReferenceShouldThrowAnException()
+    {
+        $this->expectException(RouteCircularReferenceException::class);
+        $this->expectExceptionMessage('Circular reference detected for route "b", path: "b -> c -> a -> b".');
+
+        $this->routeCollection->addAlias('a', 'b');
+        $this->routeCollection->addAlias('b', 'c');
+        $this->routeCollection->addAlias('c', 'a');
+
+        $this->generatorDumper->dump();
+    }
+
     /**
      * @group legacy
      */
@@ -363,11 +398,7 @@ class CompiledUrlGeneratorDumperTest extends TestCase
             ->setDeprecated('foo/bar', '1.0.0', 'foo %alias%.');
         $this->routeCollection->addAlias('c', 'b');
 
-        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump());
-
-        $compiledUrlGenerator = new CompiledUrlGenerator(require $this->testTmpFilepath, new RequestContext());
-
-        $compiledUrlGenerator->generate('c');
+        $this->generatorDumper->dump();
     }
 
     /**

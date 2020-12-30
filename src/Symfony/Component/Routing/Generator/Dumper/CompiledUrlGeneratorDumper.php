@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Routing\Generator\Dumper;
 
+use Symfony\Component\Routing\Exception\RouteCircularReferenceException;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 
 /**
@@ -46,14 +47,29 @@ class CompiledUrlGeneratorDumper extends GeneratorDumper
         $routes = $this->getRoutes();
         $compiledAliases = [];
         foreach ($routes->getAliases() as $name => $alias) {
-            $deprecation = $alias->isDeprecated() ? $alias->getDeprecation($name) : [];
+            $rootDeprecation = $alias->isDeprecated() ? $alias->getDeprecation($name) : [];
+            $visited = [];
             while ($routes->hasAlias($alias->getId())) {
-                $alias = $routes->getAlias($alias->getId());
+                $currentId = $alias->getId();
+                $searchKey = array_search($currentId, $visited);
+                $visited[] = $currentId;
+
+                if (false !== $searchKey) {
+                    throw new RouteCircularReferenceException($currentId, \array_slice($visited, $searchKey));
+                }
+
+                $alias = $routes->getAlias($currentId);
+
+                if ($alias->isDeprecated()) {
+                    $deprecation = $alias->getDeprecation($currentId);
+
+                    trigger_deprecation($deprecation['package'], $deprecation['version'], $deprecation['message']);
+                }
             }
 
             $compiledAliases[$name] = [
                 $alias->getId(),
-                $deprecation,
+                $rootDeprecation,
             ];
         }
 

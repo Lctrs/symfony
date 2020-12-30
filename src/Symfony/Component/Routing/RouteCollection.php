@@ -372,14 +372,6 @@ class RouteCollection implements \IteratorAggregate, \Countable
             throw new InvalidArgumentException(sprintf('The route alias "%s" does not exist.', $name));
         }
 
-        $alias = $this->aliases[$name];
-
-        if ($alias->isDeprecated()) {
-            $deprecation = $alias->getDeprecation($name);
-
-            trigger_deprecation($deprecation['package'], $deprecation['version'], $deprecation['message']);
-        }
-
-        return $alias;
+        return $this->aliases[$name];
     }
 }
