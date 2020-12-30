@@ -4,7 +4,7 @@
         xsi:schemaLocation="http://symfony.com/schema/routing
         https://symfony.com/schema/routing/routing-1.0.xsd">
 
-    <alias id="invalid" route="route">
+    <route id="invalid" alias="route">
         <deprecated version="1.0.0"/>
-    </alias>
+    </route>
 </routes>

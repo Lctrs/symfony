@@ -238,6 +238,7 @@ class XmlFileLoaderTest extends TestCase
             ['nonvalid.xml'],
             ['missing_id.xml'],
             ['missing_path.xml'],
+            ['nonvalid-deprecated-route.xml'],
             ['alias/invalid-deprecated-no-package.xml'],
             ['alias/invalid-deprecated-no-version.xml'],
         ];

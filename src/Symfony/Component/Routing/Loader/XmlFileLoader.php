@@ -88,9 +88,6 @@ class XmlFileLoader extends FileLoader
             case 'import':
                 $this->parseImport($collection, $node, $path, $file);
                 break;
-            case 'alias':
-                $this->parseAlias($collection, $node, $path);
-                break;
             default:
                 throw new \InvalidArgumentException(sprintf('Unknown tag "%s" used in file "%s". Expected "route" or "import".', $node->localName, $path));
         }
@@ -116,6 +113,17 @@ class XmlFileLoader extends FileLoader
     {
         if ('' === $id = $node->getAttribute('id')) {
             throw new \InvalidArgumentException(sprintf('The <route> element in file "%s" must have an "id" attribute.', $path));
+        }
+
+        if ('' !== $alias = $node->getAttribute('alias')) {
+            $alias = $collection->addAlias($id, $alias);
+
+            $deprecationInfo = $this->parseDeprecation($node, $path);
+            if ([] !== $deprecationInfo) {
+                $alias->setDeprecated($deprecationInfo['package'], $deprecationInfo['version'], $deprecationInfo['message']);
+            }
+
+            return;
         }
 
         $schemes = preg_split('/[\s,\|]++/', $node->getAttribute('schemes'), -1, \PREG_SPLIT_NO_EMPTY);
@@ -220,32 +228,6 @@ class XmlFileLoader extends FileLoader
 
             $collection->addCollection($subCollection);
         }
-    }
-
-    /**
-     * Parses an alias and adds it to the RouteCollection.
-     *
-     * @param \DOMElement $node Element to parse that represents a Route
-     * @param string      $path Full path of the XML file being processed
-     *
-     * @throws \InvalidArgumentException When the XML is invalid
-     */
-    protected function parseAlias(RouteCollection $collection, \DOMElement $node, string $path)
-    {
-        if ('' === $id = $node->getAttribute('id')) {
-            throw new \InvalidArgumentException(sprintf('The <alias> element in file "%s" must have an "id" attribute.', $path));
-        }
-        if ('' === $alias = $node->getAttribute('alias')) {
-            throw new \InvalidArgumentException(sprintf('The <alias> element in file "%s" must have a "route" attribute.', $path));
-        }
-
-        $alias = $collection->addAlias($id, $alias);
-
-        $deprecationInfo = $this->parseDeprecation($node, $path);
-        if ([] === $deprecationInfo) {
-            return;
-        }
-        $alias->setDeprecated($deprecationInfo['package'], $deprecationInfo['version'], $deprecationInfo['message']);
     }
 
     /**

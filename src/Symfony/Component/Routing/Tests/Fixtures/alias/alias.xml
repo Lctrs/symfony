@@ -6,15 +6,15 @@
 
     <route id="route" path="/hello"/>
     <route id="overrided" path="/"/>
-    <alias id="alias" route="route"/>
-    <alias id="deprecated" route="route">
+    <route id="alias" alias="route"/>
+    <route id="deprecated" alias="route">
         <deprecated package="foo/bar" version="1.0.0"/>
-    </alias>
-    <alias id="deprecated-with-custom-message" route="route">
+    </route>
+    <route id="deprecated-with-custom-message" alias="route">
         <deprecated package="foo/bar" version="1.0.0">
             foo %alias%.
         </deprecated>
-    </alias>
-    <alias id="deep" route="alias"/>
-    <alias id="overrided" route="route"/>
+    </route>
+    <route id="deep" alias="alias"/>
+    <route id="overrided" alias="route"/>
 </routes>
