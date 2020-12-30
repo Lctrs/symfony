@@ -785,7 +785,6 @@ class UrlGeneratorTest extends TestCase
         $this->getGenerator($routes)->generate('c');
     }
 
-
     public function testCircularReferenceShouldThrowAnException()
     {
         $this->expectException(RouteCircularReferenceException::class);
