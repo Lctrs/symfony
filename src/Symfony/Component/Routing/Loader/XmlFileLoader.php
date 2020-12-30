@@ -448,7 +448,7 @@ class XmlFileLoader extends FileLoader
             if (!$child instanceof \DOMElement || self::NAMESPACE_URI !== $child->namespaceURI) {
                 continue;
             }
-            if (!\in_array($child->localName, ['deprecated'], true)) {
+            if ('deprecated' !== $child->localName) {
                 throw new \InvalidArgumentException(sprintf('Invalid child element "%s" defined for alias "%s" in "%s".', $child->localName, $node->getAttribute('id'), $path));
             }
 
