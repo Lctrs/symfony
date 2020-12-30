@@ -369,4 +369,39 @@ class CompiledUrlGeneratorDumperTest extends TestCase
 
         $compiledUrlGenerator->generate('c');
     }
+
+    /**
+     * @dataProvider compiledUrlGeneratorWithDeprecatedCompiledRoutesProvider
+     * @group legacy
+     */
+    public function testDeprecationMessageForCompiledRoutes(callable $instantiator)
+    {
+        $this->expectDeprecation('Since symfony/routing 5.3: Providing a list of routes at the root level of the "$compiledRoutes" constructor argument of "Symfony\Component\Routing\Generator\CompiledUrlGenerator" is deprecated, provide them in a "routes" subkey instead.');
+
+        $instantiator();
+    }
+
+    public function compiledUrlGeneratorWithDeprecatedCompiledRoutesProvider(): iterable
+    {
+        yield [
+            static function (): CompiledUrlGenerator {
+                return new CompiledUrlGenerator([], new RequestContext());
+            },
+        ];
+        yield [
+            static function (): CompiledUrlGenerator {
+                return new CompiledUrlGenerator(['foo' => []], new RequestContext());
+            },
+        ];
+        yield [
+            static function (): CompiledUrlGenerator {
+                return new CompiledUrlGenerator(['aliases' => [], 'foo' => []], new RequestContext());
+            },
+        ];
+        yield [
+            static function (): CompiledUrlGenerator {
+                return new CompiledUrlGenerator(['routes' => [], 'aliases' => [], 'foo' => []], new RequestContext());
+            },
+        ];
+    }
 }

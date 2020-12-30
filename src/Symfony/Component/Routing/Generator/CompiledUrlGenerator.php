@@ -26,14 +26,7 @@ class CompiledUrlGenerator extends UrlGenerator
 
     public function __construct(array $compiledRoutes, RequestContext $context, LoggerInterface $logger = null, string $defaultLocale = null)
     {
-        // TODO: To be removed in Symfony 6.0
-        if (!isset($compiledRoutes['routes'])) {
-            trigger_deprecation(
-                'symfony/routing',
-                '5.3',
-                'Providing a list of routes at the root level of the "$compiledRoutes" constructor argument of "'.__CLASS__.'" is deprecated, provide them in a "routes" subkey instead.'
-            );
-        }
+        $this->checkDeprecatedCompiledRoutesFormat($compiledRoutes);
 
         $this->compiledRoutes = $compiledRoutes['routes'] ?? $compiledRoutes;
         $this->compiledAliases = $compiledRoutes['aliases'] ?? [];
@@ -80,5 +73,32 @@ class CompiledUrlGenerator extends UrlGenerator
         }
 
         return $this->doGenerate($variables, $defaults, $requirements, $tokens, $parameters, $name, $referenceType, $hostTokens, $requiredSchemes);
+    }
+
+    private function checkDeprecatedCompiledRoutesFormat(array $compiledRoutes): void
+    {
+        if ([] === $compiledRoutes || !isset($compiledRoutes['routes'])) {
+            trigger_deprecation(
+                'symfony/routing',
+                '5.3',
+                'Providing a list of routes at the root level of the "$compiledRoutes" constructor argument of "'.__CLASS__.'" is deprecated, provide them in a "routes" subkey instead.'
+            );
+
+            return;
+        }
+
+        foreach ($compiledRoutes as $key => $_) {
+            if (\in_array($key, ['routes', 'aliases'], true)) {
+                continue;
+            }
+
+            trigger_deprecation(
+                'symfony/routing',
+                '5.3',
+                'Providing a list of routes at the root level of the "$compiledRoutes" constructor argument of "'.__CLASS__.'" is deprecated, provide them in a "routes" subkey instead.'
+            );
+
+            return;
+        }
     }
 }
