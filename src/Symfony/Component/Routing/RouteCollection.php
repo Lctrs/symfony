@@ -209,10 +209,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
         }
 
         foreach ($this->aliases as $name => $alias) {
-            $prefixedAliases[$prefix.$name] = $alias->with(
-                $prefix.$name,
-                $prefix.$alias->getTarget()
-            );
+            $prefixedAliases[$prefix.$name] = $alias->redirect($prefix.$alias->getId());
         }
 
         $this->routes = $prefixedRoutes;
@@ -350,7 +347,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
 
         unset($this->routes[$name], $this->priorities[$name]);
 
-        return $this->aliases[$name] = new Alias($name, $alias);
+        return $this->aliases[$name] = new Alias($alias);
     }
 
     /**
@@ -378,7 +375,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
         $alias = $this->aliases[$name];
 
         if ($alias->isDeprecated()) {
-            $deprecation = $alias->getDeprecation();
+            $deprecation = $alias->getDeprecation($name);
 
             trigger_deprecation($deprecation['package'], $deprecation['version'], $deprecation['message']);
         }

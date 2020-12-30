@@ -15,21 +15,18 @@ use Symfony\Component\Routing\Exception\InvalidArgumentException;
 
 final class Alias
 {
-    private $name;
     private $id;
     private $deprecation = [];
 
-    public function __construct(string $name, string $id)
+    public function __construct(string $id)
     {
-        $this->name = $name;
         $this->id = $id;
     }
 
-    public function with(string $name, string $id): self
+    public function redirect(string $id): self
     {
         $new = clone $this;
 
-        $new->name = $name;
         $new->id = $id;
 
         return $new;
@@ -84,14 +81,14 @@ final class Alias
     }
 
     /**
-     * @return array{package: string, version: string, message: string}
+     * @param string $name Route name relying on this alias
      */
-    public function getDeprecation(): array
+    public function getDeprecation(string $name): array
     {
         return [
             'package' => $this->deprecation['package'],
             'version' => $this->deprecation['version'],
-            'message' => str_replace('%alias%', $this->name, $this->deprecation['message']),
+            'message' => str_replace('%alias%', $name, $this->deprecation['message']),
         ];
     }
 }
