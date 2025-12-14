@@ -20,6 +20,7 @@ use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
+use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 
 /**
  * Provides a single extension point to process a response's content stream.
@@ -262,7 +263,7 @@ class AsyncResponse implements ResponseInterface, StreamableInterface
             }
 
             $chunk = null;
-            foreach ($client->stream($wrappedResponses, $timeout) as $response => $chunk) {
+            foreach (self::doStream($client, $wrappedResponses, $timeout) as $response => $chunk) {
                 $r = $asyncMap[$response];
 
                 if (null === $chunk->getError()) {
@@ -317,6 +318,33 @@ class AsyncResponse implements ResponseInterface, StreamableInterface
                 }
             }
         }
+    }
+
+    private static function doStream(HttpClientInterface $client, iterable $wrappedResponses, ?float $timeout = null): ResponseStreamInterface
+    {
+        $mockResponses = [];
+        $responses = [];
+
+        foreach ($wrappedResponses as $response) {
+            if ($response instanceof MockResponse) {
+                $mockResponses[] = $response;
+            } else {
+                $responses[] = $response;
+            }
+        }
+
+        if (!$mockResponses) {
+            return $client->stream($responses, $timeout);
+        }
+
+        if (!$responses) {
+            return new ResponseStream(MockResponse::stream($mockResponses, $timeout));
+        }
+
+        return new ResponseStream((function () use ($client, $mockResponses, $responses, $timeout) {
+            yield from MockResponse::stream($mockResponses, $timeout);
+            yield from $client->stream($responses, $timeout);
+        })());
     }
 
     /**
